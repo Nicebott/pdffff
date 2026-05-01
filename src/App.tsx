@@ -31,7 +31,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100">
+      <header className="sticky top-0 z-50 bg-white border-b border-slate-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
@@ -78,51 +78,56 @@ function App() {
         </div>
 
         {/* Mobile overlay */}
-        <div
-          className={`md:hidden fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300 ${mobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-          onClick={() => setMobileMenuOpen(false)}
-        />
+        {mobileMenuOpen && (
+          <div
+            className="md:hidden fixed inset-0 z-30 bg-slate-900/50 backdrop-blur-sm transition-opacity duration-300"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
 
         {/* Mobile slide-out nav */}
         <div
-          className={`md:hidden fixed top-0 right-0 z-50 h-full w-72 bg-white shadow-2xl transition-transform duration-300 ease-out ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
+          className={`md:hidden fixed top-0 right-0 z-40 h-full w-80 bg-white shadow-2xl transition-transform duration-300 ease-out overflow-y-auto rounded-l-3xl ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
         >
-          <div className="flex items-center justify-between px-5 h-16 border-b border-slate-100">
+          <div className="sticky top-0 flex items-center justify-between px-5 h-16 border-b border-slate-100 bg-white rounded-tl-3xl z-10">
             <span className="text-lg font-bold text-slate-800">Menu</span>
-            <button onClick={() => setMobileMenuOpen(false)} className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
-              <X size={20} />
+            <button onClick={() => setMobileMenuOpen(false)} className="p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+              <X size={22} />
             </button>
           </div>
-          <nav className="p-4 space-y-1.5">
+          <nav className="p-4 space-y-2">
             {tools.map((tool, i) => {
               const tc = colorMap[tool.color];
               return (
                 <button
                   key={tool.id}
                   onClick={() => { setActiveTool(tool.id); setMobileMenuOpen(false); }}
-                  className={`flex items-center gap-3 w-full px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-200
+                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-2xl font-medium transition-all duration-200 group
                     ${activeTool === tool.id
                       ? `${tc.bg} text-white shadow-lg ${tc.shadow}`
-                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                      : 'text-slate-600 hover:bg-slate-50'
                     }`}
-                  style={{ animationDelay: mobileMenuOpen ? `${i * 50}ms` : '0ms' }}
+                  style={{
+                    animation: mobileMenuOpen ? `slideIn 0.3s ease-out ${i * 40}ms forwards` : 'none',
+                    opacity: mobileMenuOpen ? 1 : 0,
+                  }}
                 >
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200
-                    ${activeTool === tool.id ? 'bg-white/20' : 'bg-slate-100'}`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 flex-shrink-0
+                    ${activeTool === tool.id ? 'bg-white/20' : `${tc.light} ${tc.text}`}`}>
                     {tool.icon}
                   </div>
                   <div className="text-left">
-                    <div>{tool.label}</div>
-                    <div className={`text-xs font-normal ${activeTool === tool.id ? 'text-white/70' : 'text-slate-400'}`}>{tool.desc}</div>
+                    <div className="text-sm font-semibold">{tool.label}</div>
+                    <div className={`text-xs font-normal ${activeTool === tool.id ? 'text-white/75' : 'text-slate-500'}`}>{tool.desc}</div>
                   </div>
                 </button>
               );
             })}
           </nav>
-          <div className="absolute bottom-0 left-0 right-0 p-5 border-t border-slate-100">
-            <div className="flex items-center gap-2 text-xs text-slate-400">
-              <Shield size={14} />
-              Todo se procesa en tu navegador
+          <div className="sticky bottom-0 left-0 right-0 p-4 border-t border-slate-100 bg-white rounded-bl-3xl">
+            <div className="flex items-center gap-2.5 text-xs text-slate-500 bg-slate-50 rounded-lg p-3">
+              <Shield size={14} className="flex-shrink-0 text-emerald-600" />
+              <span>Todo procesado localmente</span>
             </div>
           </div>
         </div>
