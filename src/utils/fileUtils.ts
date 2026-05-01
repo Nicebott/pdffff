@@ -3,9 +3,13 @@ import { saveAs } from 'file-saver';
 
 export async function compressFiles(files: File[], level: number = 6): Promise<Blob> {
   const zip = new JSZip();
+  const usedPaths = new Set<string>();
   for (const file of files) {
     const arrayBuffer = await file.arrayBuffer();
-    zip.file(file.name, arrayBuffer, {
+    const path = file.webkitRelativePath || file.name;
+    const zipPath = usedPaths.has(path) ? `_${Date.now()}_${file.name}` : path;
+    usedPaths.add(zipPath);
+    zip.file(zipPath, arrayBuffer, {
       compression: 'DEFLATE',
       compressionOptions: { level },
     });

@@ -73,11 +73,12 @@ export default function CompressTools() {
       <DropZone
         accept={mode === 'zip' ? '*' : '.zip'}
         multiple={mode === 'zip'}
+        directory={mode === 'zip'}
         onFiles={(newFiles) => setFiles(mode === 'zip' ? prev => [...prev, ...newFiles] : newFiles)}
         files={files}
         onRemoveFile={(i) => setFiles(prev => prev.filter((_, idx) => idx !== i))}
-        label={mode === 'zip' ? 'Arrastra archivos aqui' : 'Arrastra tu ZIP aqui'}
-        sublabel={mode === 'zip' ? 'Cualquier tipo de archivo' : 'Archivos .zip'}
+        label={mode === 'zip' ? 'Arrastra archivos o carpetas aqui' : 'Arrastra tu ZIP aqui'}
+        sublabel={mode === 'zip' ? 'Archivos, carpetas o ambos' : 'Archivos .zip'}
       />
 
       {mode === 'zip' && files.length > 0 && (

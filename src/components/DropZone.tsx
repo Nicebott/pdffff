@@ -9,9 +9,62 @@ interface DropZoneProps {
   sublabel?: string;
   files?: File[];
   onRemoveFile?: (index: number) => void;
+  directory?: boolean;
 }
 
-export default function DropZone({ accept, multiple = false, onFiles, label, sublabel, files = [], onRemoveFile }: DropZoneProps) {
+async function readEntry(entry: FileSystemEntry, path: string = ''): Promise<File[]> {
+  if (entry.isFile) {
+    return new Promise((resolve) => {
+      (entry as FileSystemFileEntry).file(
+        (file) => {
+          const namedFile = new File([file], path + file.name, { type: file.type });
+          resolve([namedFile]);
+        },
+        () => resolve([])
+      );
+    });
+  }
+  if (entry.isDirectory) {
+    const dirReader = (entry as FileSystemDirectoryEntry).createReader();
+    const entries: FileSystemEntry[] = [];
+    let batch: FileSystemEntry[];
+    do {
+      batch = await new Promise<FileSystemEntry[]>((resolve, reject) => {
+        dirReader.readEntries(resolve, reject);
+      });
+      entries.push(...batch);
+    } while (batch.length > 0);
+
+    const files: File[] = [];
+    for (const child of entries) {
+      const childFiles = await readEntry(child, path + entry.name + '/');
+      files.push(...childFiles);
+    }
+    return files;
+  }
+  return [];
+}
+
+async function getFilesFromDataTransfer(dataTransfer: DataTransfer): Promise<File[]> {
+  const items = dataTransfer.items;
+  if (items && items.length > 0) {
+    const allFiles: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      const entry = items[i].webkitGetAsEntry?.();
+      if (entry) {
+        const files = await readEntry(entry);
+        allFiles.push(...files);
+      } else {
+        const file = items[i].getAsFile();
+        if (file) allFiles.push(file);
+      }
+    }
+    return allFiles;
+  }
+  return Array.from(dataTransfer.files);
+}
+
+export default function DropZone({ accept, multiple = false, onFiles, label, sublabel, files = [], onRemoveFile, directory }: DropZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -24,11 +77,13 @@ export default function DropZone({ accept, multiple = false, onFiles, label, sub
     setIsDragging(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    onFiles(droppedFiles);
+    const droppedFiles = await getFilesFromDataTransfer(e.dataTransfer);
+    if (droppedFiles.length > 0) {
+      onFiles(droppedFiles);
+    }
   }, [onFiles]);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,6 +110,7 @@ export default function DropZone({ accept, multiple = false, onFiles, label, sub
           type="file"
           accept={accept}
           multiple={multiple}
+          {...(directory ? { webkitdirectory: 'true', directory: 'true' } : {})}
           onChange={handleChange}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         />
@@ -71,7 +127,7 @@ export default function DropZone({ accept, multiple = false, onFiles, label, sub
       </div>
 
       {files.length > 0 && (
-        <div className="mt-4 space-y-2">
+        <div className="mt-4 space-y-2 max-h-60 overflow-y-auto">
           {files.map((file, i) => (
             <div key={i} className="flex items-center justify-between bg-white rounded-xl px-4 py-3 border border-slate-100 shadow-sm">
               <div className="flex items-center gap-3 min-w-0">
