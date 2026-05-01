@@ -63,34 +63,69 @@ function App() {
             </nav>
 
             {/* Mobile menu button */}
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-50">
-              {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-50 transition-colors"
+              aria-label="Abrir menu"
+            >
+              <div className="relative w-5 h-5">
+                <span className={`absolute left-0 h-0.5 w-5 bg-slate-600 rounded-full transition-all duration-300 ${mobileMenuOpen ? 'top-2.5 rotate-45' : 'top-1'}`} />
+                <span className={`absolute left-0 top-2.5 h-0.5 w-5 bg-slate-600 rounded-full transition-all duration-300 ${mobileMenuOpen ? 'opacity-0 scale-x-0' : 'opacity-100 scale-x-100'}`} />
+                <span className={`absolute left-0 h-0.5 w-5 bg-slate-600 rounded-full transition-all duration-300 ${mobileMenuOpen ? 'top-2.5 -rotate-45' : 'top-4'}`} />
+              </div>
             </button>
           </div>
         </div>
 
-        {/* Mobile nav */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-100 bg-white px-4 py-3 space-y-1">
-            {tools.map(tool => {
+        {/* Mobile overlay */}
+        <div
+          className={`md:hidden fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300 ${mobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+          onClick={() => setMobileMenuOpen(false)}
+        />
+
+        {/* Mobile slide-out nav */}
+        <div
+          className={`md:hidden fixed top-0 right-0 z-50 h-full w-72 bg-white shadow-2xl transition-transform duration-300 ease-out ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        >
+          <div className="flex items-center justify-between px-5 h-16 border-b border-slate-100">
+            <span className="text-lg font-bold text-slate-800">Menu</span>
+            <button onClick={() => setMobileMenuOpen(false)} className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
+              <X size={20} />
+            </button>
+          </div>
+          <nav className="p-4 space-y-1.5">
+            {tools.map((tool, i) => {
               const tc = colorMap[tool.color];
               return (
                 <button
                   key={tool.id}
                   onClick={() => { setActiveTool(tool.id); setMobileMenuOpen(false); }}
-                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium transition-all
+                  className={`flex items-center gap-3 w-full px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-200
                     ${activeTool === tool.id
-                      ? `${tc.bg} text-white`
-                      : 'text-slate-500 hover:bg-slate-50'
+                      ? `${tc.bg} text-white shadow-lg ${tc.shadow}`
+                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
                     }`}
+                  style={{ animationDelay: mobileMenuOpen ? `${i * 50}ms` : '0ms' }}
                 >
-                  {tool.icon}
-                  {tool.label}
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200
+                    ${activeTool === tool.id ? 'bg-white/20' : 'bg-slate-100'}`}>
+                    {tool.icon}
+                  </div>
+                  <div className="text-left">
+                    <div>{tool.label}</div>
+                    <div className={`text-xs font-normal ${activeTool === tool.id ? 'text-white/70' : 'text-slate-400'}`}>{tool.desc}</div>
+                  </div>
                 </button>
               );
             })}
+          </nav>
+          <div className="absolute bottom-0 left-0 right-0 p-5 border-t border-slate-100">
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              <Shield size={14} />
+              Todo se procesa en tu navegador
+            </div>
           </div>
-        )}
+        </div>
       </header>
 
       {/* Hero */}
